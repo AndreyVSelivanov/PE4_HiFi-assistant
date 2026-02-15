@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hi-Fi Chat Widget</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: transparent;
+    }
+    .chatbox {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 320px;
+      height: 420px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .header {
+      background: #202124;
+      color: #fff;
+      padding: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+    .msg {
+      margin: 6px 0;
+      line-height: 1.4;
+    }
+    .msg.user { text-align: right; color: #0b7dda; }
+    .msg.bot { text-align: left; color: #222; }
+    form {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px;
+      background: #0b7dda;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="chatbox">
+    <div class="header">Hi-Fi Ассистент 🎧</div>
+    <div class="messages" id="messages">
+      <div class="msg bot">Здравствуйте! Чем могу помочь в подборе акустики и усилителя?</div>
+    </div>
+    <form id="chatForm">
+      <input type="text" id="userInput" placeholder="Введите сообщение..." autocomplete="off" />
+      <button type="submit">➤</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('userInput');
+    const messages = document.getElementById('messages');
+    const API_URL = "http://project15636676.tilda.ws" #https://your-domain-or-ip/webhook/tilda"; // ← замени на свой адрес Flask
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage(text, 'user');
+      input.value = '';
+
+      appendMessage('...', 'bot');
+      const loader = messages.lastChild;
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        loader.remove();
+        appendMessage(data.reply || 'Ошибка сервера', 'bot');
+      } catch (err) {
+        loader.remove();
+        appendMessage('Не удалось связаться с сервером 😢', 'bot');
+      }
+    });
+
+    function appendMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = 'msg ' + sender;
+      msg.textContent = text;
+      messages.appendChild(msg);
+      messages.scrollTop = messages.scrollHeight;
+    }
+  </script>
+</body>
+</html>

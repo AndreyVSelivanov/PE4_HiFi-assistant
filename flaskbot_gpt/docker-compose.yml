@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  flaskbot:
+    build: .
+    container_name: flaskbot
+    restart: always
+    env_file: .env
+    networks:
+      - traefik_net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flaskbot.rule=Host(`portfoliolab.ru`) && PathPrefix(`/webhook/tilda`)"
+      - "traefik.http.routers.flaskbot.entrypoints=websecure"
+      - "traefik.http.routers.flaskbot.tls=true"
+      - "traefik.http.services.flaskbot.loadbalancer.server.port=5000"
+      - "traefik.docker.network=n8n_default"
+
+networks:
+  traefik_net:
+    external: true
+    name: n8n_default
